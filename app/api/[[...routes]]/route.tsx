@@ -3,6 +3,7 @@
 import { allo } from "@/abis/Allo";
 import { fetchGrant, fetchProject } from "@/hooks/useRegisteredEvent";
 import { Button, Frog, TextInput, parseEther } from "frog";
+import { createSystem } from 'frog/ui'
 import { devtools } from "frog/dev";
 import { handle } from "frog/next";
 import { serveStatic } from "frog/serve-static";
@@ -18,6 +19,8 @@ import {
   truncateText,
 } from "@/utils";
 
+const { Image } = createSystem()
+
 if (!process.env.IPFS_BASE_URL) {
   throw new Error("IPFS_BASE_URL is not defined");
 }
@@ -27,6 +30,7 @@ const app = new Frog({
   assetsPath: "/",
   basePath: "/api",
   browserLocation: "/",
+  imageAspectRatio: '1:1',
   imageOptions: {
     fonts: [
       {
@@ -44,6 +48,7 @@ const app = new Frog({
 
 app.frame("/", async (c) => {
   return c.res({
+    action: '/create',
     image: (
       <div
         style={{
@@ -73,690 +78,265 @@ app.frame("/", async (c) => {
         >
           Welcome to DalleDress
         </div>
-        <div
-          style={{
-            color: "white",
-            fontSize: 40,
-            fontStyle: "normal",
-            letterSpacing: "-0.025em",
-            lineHeight: 1.4,
-            whiteSpace: "pre-wrap",
-          }}
-        >
-          DalleDress is a easiest way to donate to Gitcoin Grants.
-        </div>
-        <div
-          style={{
-            color: "white",
-            fontSize: 50,
-            fontStyle: "normal",
-            letterSpacing: "-0.025em",
-            lineHeight: 1.4,
-            whiteSpace: "pre-wrap",
-            marginTop: 20,
-          }}
-        >
-          👇See more details on Github👇
-        </div>
       </div>
     ),
     intents: [
-      <Button.Link href="https://github.com/tnkshuuhei/gg-frame">
-        Github 🔧
-      </Button.Link>,
-      <Button.Link href="https://warpcast.com/dalledress">
-        follow dalledress ❤️
-      </Button.Link>,
-      <Button action="/create">Create Frame</Button>,
-    ],
-  });
-});
-app.frame("/create", (c) => {
-  return c.res({
-    image: (
-      <div
-        style={{
-          alignItems: "center",
-          background: "linear-gradient(to right, #36D1DC, #5B86E5)",
-          display: "flex",
-          flexDirection: "column",
-          flexWrap: "nowrap",
-          height: "100%",
-          justifyContent: "center",
-          textAlign: "center",
-          width: "100%",
-          fontFamily: "Open Sans",
-          fontWeight: 500,
-          padding: "20px",
-        }}
-      >
-        <div
-          style={{
-            color: "white",
-            fontSize: 80,
-            fontStyle: "normal",
-            letterSpacing: "-0.025em",
-            lineHeight: 1.4,
-            whiteSpace: "pre-wrap",
-          }}
-        >
-          Create frame for your project!
-        </div>
-        <div
-          style={{
-            color: "white",
-            fontSize: 50,
-            fontStyle: "normal",
-            letterSpacing: "-0.025em",
-            lineHeight: 1.4,
-            whiteSpace: "pre-wrap",
-            marginTop: 20,
-          }}
-        >
-          👇Paste project url below👇
-        </div>
-        <div
-          style={{
-            color: "white",
-            fontSize: 40,
-            fontStyle: "normal",
-            letterSpacing: "-0.025em",
-            lineHeight: 1.4,
-            whiteSpace: "pre-wrap",
-          }}
-        >
-          {`e.g. https://explorer.gitcoin.co/#/round/42161/389/55`}
-        </div>
-      </div>
-    ),
-
-    intents: [
-      <TextInput placeholder="Paste your Project URL here!" />,
-      <Button action="/cast">Next</Button>,
+      // <Button.Link href="https://github.com/tnkshuuhei/gg-frame">
+      //   Github 🔧
+      // </Button.Link>,
+      <Button.Transaction target="/send-ether">Create New for 0.0001 Ξ</Button.Transaction>,
+      <Button action="/view">View Existing</Button>,
     ],
   });
 });
 
-app.frame("/cast", async (c) => {
-  const { inputText } = c;
+app.frame("/create", async (c) => {
+  const { frameData, buttonValue } = c
+  let url = `http://192.34.63.136:8080/dalle/simple/${frameData?.address}?generate`
 
-  const pjURL = inputText!;
-
-  const roundInfo = extractRoundInfo(pjURL);
-
-  if (!roundInfo) {
-    return c.res({
-      image: (
-        <div
-          style={{
-            alignItems: "center",
-            background: "red",
-            display: "flex",
-            flexDirection: "column",
-            flexWrap: "nowrap",
-            height: "100%",
-            justifyContent: "center",
-            textAlign: "center",
-            width: "100%",
-            fontFamily: "Open Sans",
-            fontWeight: 500,
-            padding: "20px",
-          }}
-        >
-          <div
-            style={{
-              color: "white",
-              fontSize: 100,
-              fontStyle: "normal",
-              letterSpacing: "-0.025em",
-              lineHeight: 1.4,
-              whiteSpace: "pre-wrap",
-            }}
-          >
-            Invalid URL
-          </div>
-        </div>
-      ),
-    });
-  }
-
-  const chainId = roundInfo[0];
-  const poolId = roundInfo[1];
-  const count = roundInfo[2];
-
-  const data = await fetchGrant(Number(chainId), poolId!, count);
-
-  const applicationData = data.data?.round.applications[0];
-  const canonicalChainID = applicationData?.project.metadata.canonical?.chainId;
-
-  const status = applicationData?.status;
-
-  let metadata;
-
-  if (canonicalChainID) {
-    const fetchedMetadata = await fetchProject(
-      canonicalChainID,
-      applicationData?.projectId
-    );
-    metadata = fetchedMetadata?.data?.project.metadata;
-  } else {
-    metadata = applicationData?.project.metadata;
-  }
-
-  const text = `Donate%20to%20${metadata?.title}%20on%20Gitcoin!`;
-
-  const url = `https://warpcast.com/~/compose?text=${text}&embeds[]=https://dalledress.xyz/api/donate/${chainId}/${poolId}/${count}`;
-  if (status !== "APPROVED") {
-    return c.res({
-      image: (
-        <div
-          style={{
-            alignItems: "center",
-            background: "red",
-            display: "flex",
-            flexDirection: "column",
-            flexWrap: "nowrap",
-            height: "100%",
-            justifyContent: "center",
-            textAlign: "center",
-            width: "100%",
-            fontFamily: "Open Sans",
-            fontWeight: 500,
-            padding: "20px",
-          }}
-        >
-          <div
-            style={{
-              color: "white",
-              fontSize: 100,
-              fontStyle: "normal",
-              letterSpacing: "-0.025em",
-              lineHeight: 1.4,
-              whiteSpace: "pre-wrap",
-            }}
-          >
-            This project is not approved
-          </div>
-        </div>
-      ),
-    });
-  }
-
-  return c.res({
-    image: (
-      <div
-        style={{
-          alignItems: "center",
-          background: "linear-gradient(to right, #36D1DC, #5B86E5)",
-          backgroundSize: "100% 100%",
-          display: "flex",
-          flexDirection: "column",
-          flexWrap: "nowrap",
-          height: "100%",
-          justifyContent: "center",
-          textAlign: "center",
-          width: "100%",
-          fontFamily: "Open Sans",
-          fontWeight: 500,
-          padding: "20px",
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "row",
-            alignItems: "center",
-            marginBottom: 20,
-            padding: "0 120px",
-            gap: "20px",
-          }}
-        >
-          <img
-            src={`${process.env.IPFS_BASE_URL}/ipfs/${metadata?.logoImg}`}
-            alt="Project Logo"
-            style={{ width: 100, height: 100, borderRadius: "50%" }}
-          />
-          <div
-            style={{
-              color: "white",
-              fontSize: 70,
-              fontStyle: "normal",
-              letterSpacing: "-0.025em",
-              lineHeight: 1.4,
-              whiteSpace: "pre-wrap",
-            }}
-          >
-            {truncateText(metadata?.title, 20)}
-          </div>
-        </div>
-
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: "20px",
-          }}
-        >
-          {metadata?.projectTwitter && (
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "row",
-                alignItems: "center",
-                marginBottom: 20,
-              }}
-            >
-              <img
-                src={XLogo.src}
-                alt="X Logo"
-                style={{ width: 40, height: 40, marginRight: 10 }}
-              />
+  // Use the DalleDress API to generate or get the generated image
+  // for the wallet address that just paid.
+  return await fetch(url)
+    .then(
+      (response) => {
+        if (!response.ok) {
+          return c.res({
+            image: (
               <div
                 style={{
-                  color: "white",
-                  fontSize: 40,
+                  alignItems: "center",
+                  background: "linear-gradient(to right, #36D1DC, #5B86E5)",
+                  display: "flex",
+                  flexDirection: "column",
+                  flexWrap: "nowrap",
+                  height: "100%",
+                  justifyContent: "center",
+                  textAlign: "center",
+                  width: "100%",
+                  fontFamily: "Open Sans",
+                  fontWeight: 500,
+                  padding: "20px",
                 }}
               >
-                {metadata?.projectTwitter}
+                <div
+                  style={{
+                    color: "white",
+                    fontSize: 100,
+                    fontStyle: "normal",
+                    letterSpacing: "-0.025em",
+                    lineHeight: 1.4,
+                    whiteSpace: "pre-wrap",
+                  }}
+                >
+                  Something went wrong
+                </div>
               </div>
-            </div>
-          )}
-          {/* {metadata?.projectGithub && (
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "row",
-                alignItems: "center",
-                marginBottom: 20,
-              }}
-            >
-              <img
-                src={GithubLogo.src}
-                alt="Github Logo"
-                style={{ width: 40, height: 40, marginRight: 10 }}
-              />
+            ),
+            intents: [
+              // <TextInput placeholder="Paste your Project URL here!" />,
+              <Button action="/">Next</Button>,
+            ],
+          });
+        } else if (response.headers.get("content-type")?.includes("image/png")) {
+          // If so, return the image
+          return c.res({
+            image: <Image src={url} height="100%" width="100%"/>,
+            intents: [
+              // <TextInput placeholder="Paste your Project URL here!" />,
+              <Button action={url}>View</Button>,
+              <Button.Transaction target={`/mint/${frameData?.address}`}>Mint</Button.Transaction>,
+            ],
+          });
+        } else {
+          return c.res({
+            image: (
               <div
                 style={{
-                  color: "white",
-                  fontSize: 40,
+                  alignItems: "center",
+                  background: "linear-gradient(to right, #36D1DC, #5B86E5)",
+                  display: "flex",
+                  flexDirection: "column",
+                  flexWrap: "nowrap",
+                  height: "100%",
+                  justifyContent: "center",
+                  textAlign: "center",
+                  width: "100%",
+                  fontFamily: "Open Sans",
+                  fontWeight: 500,
+                  padding: "20px",
                 }}
               >
-                {metadata?.projectGithub}
+                <div
+                  style={{
+                    color: "white",
+                    fontSize: 80,
+                    fontStyle: "normal",
+                    letterSpacing: "-0.025em",
+                    lineHeight: 1.4,
+                    whiteSpace: "pre-wrap",
+                  }}
+                >
+                  Please wait while your DalleDress is being generated...
+                </div>
+                <div
+                  style={{
+                    color: "white",
+                    fontSize: 50,
+                    fontStyle: "normal",
+                    letterSpacing: "-0.025em",
+                    lineHeight: 1.4,
+                    whiteSpace: "pre-wrap",
+                    marginTop: 20,
+                  }}
+                >
+                  This may take a few minutes...
+                </div>
+                {/* <div
+                  style={{
+                    color: "white",
+                    fontSize: 40,
+                    fontStyle: "normal",
+                    letterSpacing: "-0.025em",
+                    lineHeight: 1.4,
+                    whiteSpace: "pre-wrap",
+                  }}
+                >
+                  {`${frameData?.address}`}
+                </div> */}
               </div>
-            </div>
-          )} */}
-        </div>
-
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: "20px",
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "row",
-              alignItems: "center",
-              marginBottom: 20,
-            }}
-          >
-            <img
-              src={dollor.src}
-              alt="dollor"
-              style={{ width: 40, height: 40, marginRight: 10 }}
-            />
-            <div
-              style={{
-                color: "white",
-                fontSize: 40,
-              }}
-            >
-              {`${applicationData?.totalAmountDonatedInUsd}`}
-            </div>
-          </div>
-
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "row",
-              alignItems: "center",
-              marginBottom: 20,
-            }}
-          >
-            <img
-              src={human.src}
-              alt="human"
-              style={{ width: 40, height: 40, marginRight: 10 }}
-            />
-            <div
-              style={{
-                color: "white",
-                fontSize: 40,
-              }}
-            >
-              {`${applicationData?.uniqueDonorsCount}`}
-            </div>
-          </div>
-        </div>
-        <div style={{ color: "white", fontSize: 30 }}>{`${truncateText(
-          metadata?.description,
-          250
-        )}`}</div>
-      </div>
-    ),
-    intents: [
-      <Button.Reset>Back</Button.Reset>,
-      <Button.Link href={url}>cast with frame</Button.Link>,
-    ],
-  });
-});
-
-app.frame("/donate/:chainId/:poolId/:count/", async (c) => {
-  const { chainId, poolId, count } = c.req.param();
-
-  const data = await fetchGrant(Number(chainId), poolId!, count);
-
-  const applicationData = data.data?.round.applications[0];
-  const roundData = data.data?.round;
-  const canonicalChainID = applicationData?.project.metadata.canonical?.chainId;
-
-  const status = applicationData?.status;
-  let metadata;
-
-  if (canonicalChainID) {
-    const fetchedMetadata = await fetchProject(
-      canonicalChainID,
-      applicationData?.projectId
-    );
-    metadata = fetchedMetadata?.data?.project.metadata;
-  } else {
-    metadata = applicationData?.project.metadata;
-  }
-
-  const start = new Date(roundData.donationsStartTime);
-  const end = new Date(roundData.donationsEndTime);
-  const now = new Date();
-
-  const isActivePool = now >= start && now <= end;
-
-  const isSupportedStrategy =
-    roundData.strategyName ===
-    "allov2.DonationVotingMerkleDistributionDirectTransferStrategy";
-
-  if (status !== "APPROVED") {
-    return c.res({
-      image: (
-        <div
-          style={{
-            alignItems: "center",
-            background: "red",
-            display: "flex",
-            flexDirection: "column",
-            flexWrap: "nowrap",
-            height: "100%",
-            justifyContent: "center",
-            textAlign: "center",
-            width: "100%",
-            fontFamily: "Open Sans",
-            fontWeight: 500,
-            padding: "20px",
-          }}
-        >
-          <div
-            style={{
-              color: "white",
-              fontSize: 100,
-              fontStyle: "normal",
-              letterSpacing: "-0.025em",
-              lineHeight: 1.4,
-              whiteSpace: "pre-wrap",
-            }}
-          >
-            This project is not approved
-          </div>
-        </div>
-      ),
-    });
-  }
-
-  const intents =
-    isActivePool && availableChainId.includes(chainId) && isSupportedStrategy
-      ? [
-          <TextInput placeholder="Enter amount (ETH)" />,
-          <Button.Transaction
-            target={`/allocate/${chainId}/${poolId}/${applicationData?.anchorAddress}`}
-          >
-            Donate
-          </Button.Transaction>,
-          <Button.Link
-            href={`https://explorer.gitcoin.co/#/round/${chainId}/${poolId}/${count}`}
-          >
-            🔍 View Details
-          </Button.Link>,
-        ]
-      : [
-          <Button.Link
-            href={`https://explorer.gitcoin.co/#/round/${chainId}/${poolId}/${count}`}
-          >
-            🔍 View on Gitcoin Grant
-          </Button.Link>,
-        ];
-  return c.res({
-    image: (
-      <div
-        style={{
-          alignItems: "center",
-          background: "linear-gradient(to right, #36D1DC, #5B86E5)",
-          backgroundSize: "100% 100%",
-          display: "flex",
-          flexDirection: "column",
-          flexWrap: "nowrap",
-          height: "100%",
-          justifyContent: "center",
-          textAlign: "center",
-          width: "100%",
-          fontFamily: "Open Sans",
-          fontWeight: 500,
-          padding: "20px",
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "row",
-            alignItems: "center",
-            marginBottom: 20,
-            padding: "0 120px",
-            gap: "20px",
-          }}
-        >
-          <img
-            src={`${process.env.IPFS_BASE_URL}/ipfs/${metadata?.logoImg}`}
-            alt="Project Logo"
-            style={{ width: 100, height: 100, borderRadius: "50%" }}
-          />
-          <div
-            style={{
-              color: "white",
-              fontSize: 70,
-              fontStyle: "normal",
-              letterSpacing: "-0.025em",
-              lineHeight: 1.4,
-              whiteSpace: "pre-wrap",
-            }}
-          >
-            {truncateText(metadata?.title, 20)}
-          </div>
-        </div>
-
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: "20px",
-          }}
-        >
-          {metadata?.projectTwitter && (
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "row",
-                alignItems: "center",
-                marginBottom: 20,
-              }}
-            >
-              <img
-                src={XLogo.src}
-                alt="X Logo"
-                style={{ width: 40, height: 40, marginRight: 10 }}
-              />
-              <div
-                style={{
-                  color: "white",
-                  fontSize: 40,
-                }}
-              >
-                {metadata?.projectTwitter}
-              </div>
-            </div>
-          )}
-          {/* {metadata?.projectGithub && (
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "row",
-                alignItems: "center",
-                marginBottom: 20,
-              }}
-            >
-              <img
-                src={GithubLogo.src}
-                alt="Github Logo"
-                style={{ width: 40, height: 40, marginRight: 10 }}
-              />
-              <div
-                style={{
-                  color: "white",
-                  fontSize: 40,
-                }}
-              >
-                {metadata?.projectGithub}
-              </div>
-            </div>
-          )} */}
-        </div>
-
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: "20px",
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "row",
-              alignItems: "center",
-              marginBottom: 20,
-            }}
-          >
-            <img
-              src={dollor.src}
-              alt="dollor"
-              style={{ width: 40, height: 40, marginRight: 10 }}
-            />
-            <div
-              style={{
-                color: "white",
-                fontSize: 40,
-              }}
-            >
-              {`${applicationData?.totalAmountDonatedInUsd}`}
-            </div>
-          </div>
-
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "row",
-              alignItems: "center",
-              marginBottom: 20,
-            }}
-          >
-            <img
-              src={human.src}
-              alt="human"
-              style={{ width: 40, height: 40, marginRight: 10 }}
-            />
-            <div
-              style={{
-                color: "white",
-                fontSize: 40,
-              }}
-            >
-              {`${applicationData?.uniqueDonorsCount}`}
-            </div>
-          </div>
-        </div>
-        <div style={{ color: "white", fontSize: 30 }}>{`${truncateText(
-          metadata?.description,
-          250
-        )}`}</div>
-      </div>
-    ),
-    intents: intents,
-  });
-});
-
-app.transaction("/allocate/:chainId/:poolId/:recipientId/", async (c) => {
-  const { inputText } = c;
-  const { chainId, poolId, recipientId } = c.req.param();
-
-  const chain = getChainId(chainId!);
-  const NATIVE = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE".toLowerCase();
-  const permitType = 0; // None
-  const encoder = new ethers.AbiCoder();
-
-  const data = encoder.encode(
-    [
-      "address",
-      "uint8", // PermitType permitType enum
-      "tuple(tuple(tuple(address, uint256), uint256, uint256), string)",
-    ],
-    [
-      recipientId, // recipientId as address
-      permitType, // PermitType permitType enum
-      // Permit2Data memory p2Data below
-      [
-        [
-          [NATIVE, parseEther(inputText!)], // token, amount
-          0, // nonce
-          Math.floor(new Date().getTime() / 1000) + 1000, // deadline
-        ],
-        "", // signature, Native doesn't need signature
-      ],
-    ]
+            ),
+        
+            intents: [
+              // <TextInput placeholder="Paste your Project URL here!" />,
+              <Button action={`/check/${frameData?.address}`}>Refresh</Button>,
+            ],
+          });
+      }
+    }
   );
-  return c.contract({
-    abi: allo.abi,
-    chainId: chain,
-    functionName: "allocate",
-    to: allo.address,
-    args: [BigInt(poolId), data as `0x${string}`],
-    attribution: true,
-    value: parseEther(inputText!),
-  });
+});
+
+app.frame("/check/:wallet", async (c) => {
+  const wallet = c.req.param('wallet')
+  const url = `http://192.34.63.136:8080/dalle/simple/${wallet}`
+
+  return await fetch(url)
+    .then(
+      (response) => {
+        if (!response.ok) {
+          return c.res({
+            image: (
+              <div
+                style={{
+                  alignItems: "center",
+                  background: "linear-gradient(to right, #36D1DC, #5B86E5)",
+                  display: "flex",
+                  flexDirection: "column",
+                  flexWrap: "nowrap",
+                  height: "100%",
+                  justifyContent: "center",
+                  textAlign: "center",
+                  width: "100%",
+                  fontFamily: "Open Sans",
+                  fontWeight: 500,
+                  padding: "20px",
+                }}
+              >
+                <div
+                  style={{
+                    color: "white",
+                    fontSize: 100,
+                    fontStyle: "normal",
+                    letterSpacing: "-0.025em",
+                    lineHeight: 1.4,
+                    whiteSpace: "pre-wrap",
+                  }}
+                >
+                  Something went wrong
+                </div>
+              </div>
+            ),
+            intents: [
+              // <TextInput placeholder="Paste your Project URL here!" />,
+              <Button action="/">Next</Button>,
+            ],
+          });
+        } else if (response.headers.get("content-type")?.includes("image/png")) {
+          // If so, return the image
+          return c.res({
+            action: '/minted',
+            image:  <Image src={url} height="100%" width="100%"/>,
+            intents: [
+              // <TextInput placeholder="Paste your Project URL here!" />,
+              <Button action={url}>View</Button>,
+              <Button.Transaction target={`/mint/${wallet}`}>Mint</Button.Transaction>,
+            ],
+          });
+        } else {
+          return c.res({
+            image: (
+              <div
+                style={{
+                  alignItems: "center",
+                  background: "linear-gradient(to right, #36D1DC, #5B86E5)",
+                  display: "flex",
+                  flexDirection: "column",
+                  flexWrap: "nowrap",
+                  height: "100%",
+                  justifyContent: "center",
+                  textAlign: "center",
+                  width: "100%",
+                  fontFamily: "Open Sans",
+                  fontWeight: 500,
+                  padding: "20px",
+                }}
+              >
+                <div
+                  style={{
+                    color: "white",
+                    fontSize: 80,
+                    fontStyle: "normal",
+                    letterSpacing: "-0.025em",
+                    lineHeight: 1.4,
+                    whiteSpace: "pre-wrap",
+                  }}
+                >
+                  Please wait while your DalleDress is being generated...
+                </div>
+                <div
+                  style={{
+                    color: "white",
+                    fontSize: 50,
+                    fontStyle: "normal",
+                    letterSpacing: "-0.025em",
+                    lineHeight: 1.4,
+                    whiteSpace: "pre-wrap",
+                    marginTop: 20,
+                  }}
+                >
+                  This may take a few minutes...
+                </div>
+                {/* <div
+                  style={{
+                    color: "white",
+                    fontSize: 40,
+                    fontStyle: "normal",
+                    letterSpacing: "-0.025em",
+                    lineHeight: 1.4,
+                    whiteSpace: "pre-wrap",
+                  }}
+                >
+                  {`${frameData?.address}`}
+                </div> */}
+              </div>
+            ),
+            intents: [
+              // <TextInput placeholder="Paste your Project URL here!" />,
+              <Button.Transaction target={`/check/${wallet}`}>Refresh</Button.Transaction>,
+            ],
+          });
+      }
+    });
 });
 
 app.frame("/finish", (c) => {
@@ -807,6 +387,55 @@ app.frame("/finish", (c) => {
     ),
     intents: [<Button.Reset>Back</Button.Reset>],
   });
+});
+
+app.transaction('/send-ether', (c) => {
+  return c.send({
+    chainId: `eip155:84532`,
+    to: '0xf503017D7baF7FBC0fff7492b751025c6A78179b',
+    value: parseEther('0.0001'),
+    // Mark these txns as from dalledress
+    data: ethers.hexlify(ethers.toUtf8Bytes("dalledress")) as `0x{string}`
+  })
+})
+
+app.transaction('/send-ether2', (c) => {
+  return c.send({
+    chainId: `eip155:84532`,
+    to: '0xf503017D7baF7FBC0fff7492b751025c6A78179b',
+    value: parseEther('0.005'),
+    // Mark these txns as from dalledress
+    data: ethers.hexlify(ethers.toUtf8Bytes("dalledress")) as `0x{string}`
+  })
+})
+
+app.transaction('/mint/:wallet', (c) => {
+  const wallet = c.req.param('wallet') as `0x${string}`;
+  return c.contract({
+    chainId: `eip155:84532`,
+    abi: [						{
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "to",
+          "type": "address"
+        },
+        {
+          "internalType": "string",
+          "name": "uri",
+          "type": "string"
+        }
+      ],
+      "name": "safeMint",
+      "outputs": [],
+      "stateMutability": "payable",
+      "type": "function"
+    }],
+    to: '0xF915789E918Cf197A5C61065814EB9aAafC6d819',
+    functionName: 'safeMint', 
+    args: [wallet, `http://192.34.63.136:8080/dalle/simple/${wallet}`],
+    value: parseEther('0.005')
+  })
 });
 
 devtools(app, { serveStatic });
