@@ -16,7 +16,7 @@ DalleDress is a Farcaster Frame built to make it easier for users to donate to t
 
 ## Resources
 
-- [Deployed Link](https://ggframe.xyz)
+- [Deployed Link](https://dalledress.xyz)
 - [Frame implementation built with frog](https://github.com/tnkshuuhei/gg-frame)
 - **And follow me** on [Warpcast](https://warpcast.com/shutanaka.eth) and [X(Prev Twitter)](https://x.com/shutanaka_jp)
 
@@ -36,7 +36,7 @@ Copy the two numbers after `https://explorer.gitcoin.co/#/round/`. In this case 
 
 Open warpcast, and then paste the link with the numbers you copied before like below
 
-`https://ggframe.xyz/api/donate/42161/25/156`
+`https://dalledress.xyz/api/donate/42161/25/156`
 
 then, frame will be automatically created, and just cast it!
 

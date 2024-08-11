@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 import styles from "./page.module.css";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const frameTags = await getFrameMetadata(`https://ggframe.xyz/api`);
+  const frameTags = await getFrameMetadata(`https://dalledress.xyz/api`);
   return {
     other: frameTags,
   };
@@ -42,12 +42,12 @@ export default function Home() {
       </div>
 
       <div className={styles.center}>
-        <div className={styles.title}>ggframe.xyz</div>
+        <div className={styles.title}>dalledress.xyz</div>
       </div>
 
       <div className={styles.grid}>
         <a
-          href="https://ggframe.notion.site/GG-Frame-Farcaster-Frame-for-Gitcoin-Grant-a6ecd9c9368a447490c4bb18a761cb6e?pvs=4"
+          href="https://dalledress.notion.site/GG-Frame-Farcaster-Frame-for-Gitcoin-Grant-a6ecd9c9368a447490c4bb18a761cb6e?pvs=4"
           className={styles.card}
           target="_blank"
           rel="noopener noreferrer"
@@ -71,7 +71,7 @@ export default function Home() {
         </a>
 
         <a
-          href="https://warpcast.com/ggframe.eth"
+          href="https://warpcast.com/dalledress.eth"
           className={styles.card}
           target="_blank"
           rel="noopener noreferrer"
@@ -85,7 +85,7 @@ export default function Home() {
         </a>
 
         <a
-          href="https://x.com/ggframe_xyz"
+          href="https://x.com/dalledress_xyz"
           className={styles.card}
           target="_blank"
           rel="noopener noreferrer"

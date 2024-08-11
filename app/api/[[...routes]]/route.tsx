@@ -104,8 +104,8 @@ app.frame("/", async (c) => {
       <Button.Link href="https://github.com/tnkshuuhei/gg-frame">
         Github 🔧
       </Button.Link>,
-      <Button.Link href="https://warpcast.com/ggframe">
-        follow ggframe ❤️
+      <Button.Link href="https://warpcast.com/dalledress">
+        follow dalledress ❤️
       </Button.Link>,
       <Button action="/create">Create Frame</Button>,
     ],
@@ -245,7 +245,7 @@ app.frame("/cast", async (c) => {
 
   const text = `Donate%20to%20${metadata?.title}%20on%20Gitcoin!`;
 
-  const url = `https://warpcast.com/~/compose?text=${text}&embeds[]=https://ggframe.xyz/api/donate/${chainId}/${poolId}/${count}`;
+  const url = `https://warpcast.com/~/compose?text=${text}&embeds[]=https://dalledress.xyz/api/donate/${chainId}/${poolId}/${count}`;
   if (status !== "APPROVED") {
     return c.res({
       image: (
