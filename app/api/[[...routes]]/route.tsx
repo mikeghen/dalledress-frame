@@ -169,7 +169,7 @@ app.frame("/check/:wallet", async (c) => {
               <Heading>
                 Please wait while your DalleDress is being generated...
               </Heading>
-              <Text marginTop="20">
+              <Text>
                 This may take a few minutes...
               </Text>
             </VStack>
