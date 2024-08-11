@@ -21,10 +21,6 @@ import {
 
 const { Box, VStack, Heading, Text, Image } = createSystem();
 
-if (!process.env.IPFS_BASE_URL) {
-  throw new Error("IPFS_BASE_URL is not defined");
-}
-
 const app = new Frog({
   title: "DalleDress",
   assetsPath: "/",
