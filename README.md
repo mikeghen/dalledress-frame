@@ -1,10 +1,10 @@
-# GG Frame
+# DalleDress
 
 <img width="601" alt="Screenshot 2024-06-07 at 21 34 55" src="https://github.com/tnkshuuhei/gg-frame/assets/67859510/1ef11362-daea-4781-90a2-dd54e2315d0d">
 
-## What is GG frame?
+## What is DalleDress?
 
-GG frame is a Farcaster Frame built to make it easier for users to donate to the Gitcoin Grant.
+DalleDress is a Farcaster Frame built to make it easier for users to donate to the Gitcoin Grant.
 
 ## Contracts
 
@@ -20,7 +20,7 @@ GG frame is a Farcaster Frame built to make it easier for users to donate to the
 - [Frame implementation built with frog](https://github.com/tnkshuuhei/gg-frame)
 - **And follow me** on [Warpcast](https://warpcast.com/shutanaka.eth) and [X(Prev Twitter)](https://x.com/shutanaka_jp)
 
-## How to use GG frame?
+## How to use DalleDress?
 
 ### 1. Go to Gitcoin Grant Explore
 
@@ -28,7 +28,7 @@ From the [Gitcoin Grant Explorer](https://explorer.gitcoin.co/), open the projec
 
 Copy the two numbers after `https://explorer.gitcoin.co/#/round/`. In this case it is `/42161//25/156`
 
-**Note:** The Gitcoin Grant is currently hosted on Arbitrum mainnet (chainId: 42161) and the GG frame only works on chains that farcaster supports.
+**Note:** The Gitcoin Grant is currently hosted on Arbitrum mainnet (chainId: 42161) and the DalleDress only works on chains that farcaster supports.
 
 ![Screenshot 2024-06-07 at 21 01 44](https://github.com/tnkshuuhei/gg-frame/assets/67859510/572a42b3-17ca-4da8-8c1f-11caad5d45a6)
 

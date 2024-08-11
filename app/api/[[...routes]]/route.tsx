@@ -23,7 +23,7 @@ if (!process.env.IPFS_BASE_URL) {
 }
 
 const app = new Frog({
-  title: "GG Frame",
+  title: "DalleDress",
   assetsPath: "/",
   basePath: "/api",
   browserLocation: "/",
@@ -71,7 +71,7 @@ app.frame("/", async (c) => {
             whiteSpace: "pre-wrap",
           }}
         >
-          Welcome to GG frame!
+          Welcome to DalleDress
         </div>
         <div
           style={{
@@ -83,7 +83,7 @@ app.frame("/", async (c) => {
             whiteSpace: "pre-wrap",
           }}
         >
-          GG frame is a easiest way to donate to Gitcoin Grants.
+          DalleDress is a easiest way to donate to Gitcoin Grants.
         </div>
         <div
           style={{

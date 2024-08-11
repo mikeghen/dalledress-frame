@@ -55,7 +55,7 @@ export default function Home() {
           <h2>
             Docs <span>-&gt;</span>
           </h2>
-          <p>Learn how to use GG Frame to promote your project.</p>
+          <p>Learn how to use DalleDress to promote your project.</p>
         </a>
 
         <a
@@ -67,7 +67,7 @@ export default function Home() {
           <h2>
             Github <span>-&gt;</span>
           </h2>
-          <p>Dig into the source code of GG Frame.</p>
+          <p>Dig into the source code of DalleDress.</p>
         </a>
 
         <a
@@ -80,7 +80,7 @@ export default function Home() {
             Warpcast <span>-&gt;</span>
           </h2>
           <p>
-            Follow the official GG Frame Warpcast account for updates and more.
+            Follow the official DalleDress Warpcast account for updates and more.
           </p>
         </a>
 
@@ -94,7 +94,7 @@ export default function Home() {
             X(Twitter) <span>-&gt;</span>
           </h2>
           <p>
-            Follow the official GG Frame Twitter account for updates and more.
+            Follow the official DalleDress Twitter account for updates and more.
           </p>
         </a>
       </div>

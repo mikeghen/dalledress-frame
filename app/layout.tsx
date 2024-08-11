@@ -5,9 +5,9 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "GG Frame",
+  title: "DalleDress",
   description:
-    "GG Frame is built to enable user to donate projects on Gitcoin Round easily.",
+    "DalleDress is built to enable user to donate projects on Gitcoin Round easily.",
   icons: {
     icon: "/favicon.ico",
   },
