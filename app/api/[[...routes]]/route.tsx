@@ -60,7 +60,6 @@ app.frame("/", async (c) => {
     ),
     intents: [
       <Button.Transaction target="/send-ether">Create New for 0.0001 Ξ</Button.Transaction>,
-      <Button action="/view">View Existing</Button>,
     ],
   });
 });
